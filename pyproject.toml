@@ -1,5 +1,5 @@
 [project]
-name = "treasure-maze"
+name = "project1_moskvina_natalia_DPO"
 version = "0.1.0"
 description = ""
 authors = [
@@ -17,4 +17,9 @@ build-backend = "poetry.core.masonry.api"
 [dependency-groups]
 dev = [
     "ruff (>=0.14.14,<0.15.0)"
+]
+
+[tool.poetry]
+packages = [
+    { include = "labyrinth_game" }
 ]
