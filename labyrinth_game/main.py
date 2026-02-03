@@ -11,31 +11,79 @@ game_state = {
     'steps_taken': 0
 }
 
+def process_command(game_state, command):
+    """Обрабатывает команды игрока и вызывает соответствующие функции."""
+
+    # Разделяем строку на части: команда и аргумент(ы)
+    parts = command.split()
+
+    # Если строка пустая, игнорируем
+    if not parts:
+        print("Вы ничего не ввели.")
+        return
+
+    # Первое слово — это команда
+    cmd = parts[0]
+
+    # Остальные слова — аргументы (если есть)
+    args = parts[1:] if len(parts) > 1 else []
+
+    # Используем match/case для обработки команд
+    match cmd:
+        case "look":
+            # Показать описание текущей комнаты
+            utils.describe_current_room(game_state)
+
+        case "go":
+            # Переместиться в указанном направлении
+            if args:
+                direction = args[0]
+                actions.move_player(game_state, direction)
+            else:
+                print("Укажите направление (north, south, east, west).")
+
+        case "take":
+            # Взять предмет
+            if args:
+                item_name = args[0]
+                actions.take_item(game_state, item_name)
+            else:
+                print("Укажите название предмета, который хотите взять.")
+
+        case "inventory" | "inv":
+            # Показать инвентарь
+            actions.show_inventory(game_state)
+
+        case "quit" | "exit":
+            # Выход из игры
+            print("Спасибо за игру!")
+            game_state['game_over'] = True
+
+        case "use":
+            # Использовать предмет (пока не реализовано)
+            if args:
+                print(f"Вы пытаетесь использовать: {args[0]}. Эта функция пока не реализована.")
+            else:
+                print("Укажите, что вы хотите использовать.")
+
+        case _:
+            # Неизвестная команда
+            print("Неизвестная команда. Доступные команды: look, go, take, inventory, quit.")
+
 def main():
     # 2. Приветствие
     print("Добро пожаловать в Лабиринт сокровищ!")
-    
+
     # 3. Описание стартовой комнаты (вызываем функцию из utils)
     utils.describe_current_room(game_state)
-    
+
     # 4. Основной игровой цикл
     while not game_state['game_over']:
-        # Используем нашу новую функцию из модуля actions
+        # Получаем команду от пользователя
         command = actions.get_input("\nЧто вы будете делать? > ")
-        
-        # Обрабатываем команду выхода (включая "quit" из нашей новой функции)
-        if command in ["exit", "выход", "quit"]:
-            print("Спасибо за игру!")
-            game_state['game_over'] = True
-            
-        elif command == "inventory":
-            actions.show_inventory(game_state)
-            
-        elif command == "look":
-            utils.describe_current_room(game_state)
-            
-        else:
-            print("Неизвестная команда. Попробуйте 'look', 'inventory' или 'exit'.")
+
+        # Обрабатываем команду через нашу функцию
+        process_command(game_state, command)
 
 # 5. Стандартная конструкция запуска
 if __name__ == "__main__":

@@ -29,19 +29,3 @@ def describe_current_room(game_state):
     # 7. Проверяем наличие загадки
     if room_data.get('puzzle'):
         print("Кажется, здесь есть загадка (используйте команду solve).")
-
-def show_inventory(game_state):
-    """Отображает предметы, которые игрок несет с собой."""
-    inventory = game_state['player_inventory']
-    
-    print("\n--- ВАША СУМКА ---")
-    
-    # Проверяем, не пуст ли список
-    if not inventory:
-        print("Ваш инвентарь пока пуст.")
-    else:
-        print("У вас с собой:")
-        for item in inventory:
-            print(f"- {item}")
-    
-    print("------------------")
