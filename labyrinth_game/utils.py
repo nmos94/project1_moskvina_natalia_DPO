@@ -1,7 +1,9 @@
-# labyrinth_game/utils.py
-from labyrinth_game.constants import ROOMS, COMMANDS
-import labyrinth_game.player_actions as actions
+
 import math
+
+import labyrinth_game.player_actions as actions
+from labyrinth_game.constants import COMMANDS, ROOMS
+
 
 def pseudo_random(seed, modulo):
     """Генерирует псевдослучайное число в диапазоне [0, modulo)."""
