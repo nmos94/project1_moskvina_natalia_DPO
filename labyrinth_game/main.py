@@ -60,15 +60,24 @@ def process_command(game_state, command):
             game_state['game_over'] = True
 
         case "use":
-            # Использовать предмет (пока не реализовано)
+            # Использовать предмет
             if args:
-                print(f"Вы пытаетесь использовать: {args[0]}. Эта функция пока не реализована.")
+                item_name = args[0]
+                actions.use_item(game_state, item_name)
             else:
                 print("Укажите, что вы хотите использовать.")
 
+        case "solve":
+            # Решить загадку
+            utils.solve_puzzle(game_state)
+
+        case "help":
+            # Показать справку
+            utils.show_help()
+
         case _:
             # Неизвестная команда
-            print("Неизвестная команда. Доступные команды: look, go, take, inventory, quit.")
+            print("Неизвестная команда. Доступные команды: look, go, take, inventory, use, solve, help, quit.")
 
 def main():
     # 2. Приветствие

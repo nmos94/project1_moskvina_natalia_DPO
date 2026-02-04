@@ -55,11 +55,16 @@ def move_player(game_state, direction):
 def take_item(game_state, item_name):
     """Позволяет игроку взять предмет из текущей комнаты."""
 
-    # 1. Получаем ID текущей комнаты и её данные
+    # 1. Проверяем особый случай: попытка взять сундук с сокровищами
+    if item_name == 'treasure_chest':
+        print("\nВы не можете поднять сундук, он слишком тяжелый.")
+        return
+
+    # 2. Получаем ID текущей комнаты и её данные
     current_room_id = game_state['current_room']
     room_data = ROOMS[current_room_id]
 
-    # 2. Проверяем, есть ли предмет в списке предметов комнаты
+    # 3. Проверяем, есть ли предмет в списке предметов комнаты
     if item_name in room_data['items']:
         # Добавляем предмет в инвентарь игрока
         game_state['player_inventory'].append(item_name)
@@ -71,3 +76,32 @@ def take_item(game_state, item_name):
     else:
         # Если предмета нет в комнате
         print("\nТакого предмета здесь нет.")
+
+def use_item(game_state, item_name):
+    """Использует предмет из инвентаря игрока."""
+
+    # Проверяем, есть ли предмет в инвентаре
+    if item_name not in game_state['player_inventory']:
+        print("\nУ вас нет такого предмета.")
+        return
+
+    # Выполняем действие в зависимости от предмета
+    match item_name:
+        case "torch":
+            print("\nВы зажигаете факел. Вокруг стало намного светлее!")
+
+        case "sword":
+            print("\nВы крепче сжимаете рукоять меча. Вы чувствуете уверенность и готовность к бою!")
+
+        case "bronze_box":
+            print("\nВы открываете бронзовую шкатулку...")
+            # Проверяем, нет ли уже ключа в инвентаре
+            if 'rusty_key' not in game_state['player_inventory']:
+                game_state['player_inventory'].append('rusty_key')
+                print("Внутри вы находите ржавый ключ!")
+            else:
+                print("Шкатулка пуста.")
+
+        case _:
+            # Для всех остальных предметов
+            print(f"\nВы не знаете, как использовать {item_name}.")
