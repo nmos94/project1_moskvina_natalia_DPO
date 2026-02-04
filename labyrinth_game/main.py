@@ -1,5 +1,4 @@
 # labyrinth_game/main.py
-from labyrinth_game.constants import ROOMS
 import labyrinth_game.player_actions as actions
 import labyrinth_game.utils as utils
 

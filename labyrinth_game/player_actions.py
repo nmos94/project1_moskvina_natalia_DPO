@@ -25,8 +25,9 @@ def show_inventory(game_state):
     print("------------------")
 
 
-from labyrinth_game.constants import ROOMS
 import labyrinth_game.utils as utils
+from labyrinth_game.constants import ROOMS
+
 
 def move_player(game_state, direction):
     """Перемещает игрока в указанном направлении, если это возможно."""
