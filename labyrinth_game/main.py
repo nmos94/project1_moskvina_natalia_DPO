@@ -42,6 +42,10 @@ def process_command(game_state, command):
             else:
                 print("Укажите направление (north, south, east, west).")
 
+        case "north" | "south" | "east" | "west":
+            # Односложные команды направлений
+            actions.move_player(game_state, cmd)
+
         case "take":
             # Взять предмет
             if args:
@@ -68,8 +72,14 @@ def process_command(game_state, command):
                 print("Укажите, что вы хотите использовать.")
 
         case "solve":
-            # Решить загадку
-            utils.solve_puzzle(game_state)
+            # Решить загадку или открыть сокровищницу
+            current_room_id = game_state['current_room']
+            if current_room_id == 'treasure_room':
+                # В treasure_room команда solve открывает сундук
+                utils.attempt_open_treasure(game_state)
+            else:
+                # В других комнатах решаем загадки
+                utils.solve_puzzle(game_state)
 
         case "help":
             # Показать справку
@@ -77,7 +87,7 @@ def process_command(game_state, command):
 
         case _:
             # Неизвестная команда
-            print("Неизвестная команда. Доступные команды: look, go, take, inventory, use, solve, help, quit.")
+            print("Неизвестная команда. Используйте 'help' для списка команд.")
 
 def main():
     # 2. Приветствие

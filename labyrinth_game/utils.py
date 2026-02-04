@@ -1,18 +1,84 @@
 # labyrinth_game/utils.py
-from labyrinth_game.constants import ROOMS
+from labyrinth_game.constants import ROOMS, COMMANDS
 import labyrinth_game.player_actions as actions
+import math
+
+def pseudo_random(seed, modulo):
+    """Генерирует псевдослучайное число в диапазоне [0, modulo)."""
+    # Берем синус от seed, умноженного на большое число с дробной частью
+    sine_value = math.sin(seed * 12.9898)
+
+    # Умножаем на другое большое число
+    large_value = sine_value * 43758.5453
+
+    # Получаем дробную часть
+    fractional_part = large_value - math.floor(large_value)
+
+    # Приводим к диапазону [0, modulo) и возвращаем целое число
+    return int(fractional_part * modulo)
+
+def trigger_trap(game_state):
+    """Имитирует срабатывание ловушки с негативными последствиями."""
+    print("\nЛовушка активирована! Пол стал дрожать...")
+
+    inventory = game_state['player_inventory']
+
+    if inventory:
+        # Если инвентарь не пуст, удаляем случайный предмет
+        random_index = pseudo_random(game_state['steps_taken'], len(inventory))
+        lost_item = inventory.pop(random_index)
+        print(f"В суматохе вы потеряли предмет: {lost_item}!")
+    else:
+        # Если инвентарь пуст, игрок получает урон
+        damage_roll = pseudo_random(game_state['steps_taken'], 10)
+
+        if damage_roll < 3:
+            # Критический урон - поражение
+            print("Ловушка оказалась смертельной...")
+            print("\n=== GAME OVER ===")
+            print("Вы погибли от ловушки.")
+            game_state['game_over'] = True
+        else:
+            # Игрок уцелел
+            print("Вам удалось уклониться! Вы уцелели, но были напуганы.")
+
+def random_event(game_state):
+    """Генерирует случайные события во время перемещения."""
+    # Определяем, произойдет ли событие (вероятность 1/10)
+    event_chance = pseudo_random(game_state['steps_taken'], 10)
+
+    if event_chance == 0:
+        # Выбираем, какое событие произойдет
+        event_type = pseudo_random(game_state['steps_taken'] + 1, 3)
+
+        current_room_id = game_state['current_room']
+        room_data = ROOMS[current_room_id]
+
+        if event_type == 0:
+            # Сценарий 1: Находка
+            print("\n✨ Вы замечаете что-то блестящее на полу - это монетка!")
+            room_data['items'].append('coin')
+
+        elif event_type == 1:
+            # Сценарий 2: Испуг
+            print("\n👻 Вы слышите странный шорох в темноте...")
+            if 'sword' in game_state['player_inventory']:
+                print("Вы хватаетесь за меч и отпугиваете неведомое существо!")
+            else:
+                print("Вам становится не по себе...")
+
+        elif event_type == 2:
+            # Сценарий 3: Ловушка в trap_room без факела
+            if current_room_id == 'trap_room' and 'torch' not in game_state['player_inventory']:
+                print("\n⚠️  Без света вы не заметили ловушку!")
+                trigger_trap(game_state)
 
 def show_help():
     """Выводит список доступных команд."""
     print("\nДоступные команды:")
-    print("  go <direction>  - перейти в направлении (north/south/east/west)")
-    print("  look            - осмотреть текущую комнату")
-    print("  take <item>     - поднять предмет")
-    print("  use <item>      - использовать предмет из инвентаря")
-    print("  inventory       - показать инвентарь")
-    print("  solve           - попытаться решить загадку в комнате")
-    print("  quit            - выйти из игры")
-    print("  help            - показать это сообщение")
+    for command, description in COMMANDS.items():
+        # Форматируем команду с выравниванием слева и дополнением пробелами до 16 символов
+        print(f"  {command:<16} - {description}")
 
 def describe_current_room(game_state):
     """Выводит полную информацию о комнате, в которой находится игрок."""
@@ -121,22 +187,55 @@ def solve_puzzle(game_state):
     # 4. Получаем данные загадки (вопрос и правильный ответ)
     puzzle_question, correct_answer = room_data['puzzle']
 
+    # 4.1. Альтернативные варианты ответов
+    alternative_answers = {
+        '10': ['десять', 'ten'],
+        'шаг шаг шаг': ['шаг-шаг-шаг', 'шагшагшаг'],
+        'елка': ['ёлка', 'ель'],
+        'резонанс': ['огонь', 'пожар']  # "что растет, когда его съедают"
+    }
+
     # 5. Выводим вопрос
     print(f"\n{puzzle_question}")
 
     # 6. Получаем ответ от пользователя
     user_answer = actions.get_input("Ваш ответ: ")
 
-    # 7. Сравниваем ответ (приводим к нижнему регистру для сравнения)
-    if user_answer.lower() == correct_answer.lower():
+    # 7. Проверяем ответ (с учетом альтернатив)
+    correct_answer_lower = correct_answer.lower()
+    user_answer_lower = user_answer.lower()
+
+    # Создаем список всех правильных вариантов
+    valid_answers = [correct_answer_lower]
+    if correct_answer_lower in alternative_answers:
+        valid_answers.extend([alt.lower() for alt in alternative_answers[correct_answer_lower]])
+
+    if user_answer_lower in valid_answers:
         # Ответ верный
         print("\n✓ Правильно! Загадка решена!")
 
         # Убираем загадку из комнаты (чтобы нельзя было решить дважды)
         room_data['puzzle'] = None
 
-        # Добавляем награду игроку
-        print("Вы получаете награду за решение загадки!")
+        # Награда зависит от комнаты
+        if current_room_id == 'hall':
+            print("Сундук на пьедестале открывается! Внутри лежит золотой медальон.")
+            game_state['player_inventory'].append('golden_medallion')
+        elif current_room_id == 'library':
+            print("Полка сдвигается, открывая тайник! Вы находите магический свиток.")
+            game_state['player_inventory'].append('magic_scroll')
+        elif current_room_id == 'trap_room':
+            print("Плиты перестали двигаться. Путь безопасен!")
+        elif current_room_id == 'dungeon_corridor':
+            print("Стена открывается, и вы находите серебряное кольцо!")
+            game_state['player_inventory'].append('silver_ring')
+        else:
+            print("Вы получаете награду за решение загадки!")
     else:
         # Ответ неверный
         print("\nНеверно. Попробуйте снова.")
+
+        # Особая логика для trap_room
+        if current_room_id == 'trap_room':
+            print("Неправильный ответ активирует ловушку!")
+            trigger_trap(game_state)

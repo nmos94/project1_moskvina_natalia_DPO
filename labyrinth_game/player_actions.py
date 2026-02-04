@@ -30,24 +30,36 @@ import labyrinth_game.utils as utils
 
 def move_player(game_state, direction):
     """Перемещает игрока в указанном направлении, если это возможно."""
-    
+
     # 1. Получаем ID текущей комнаты и её данные
     current_room_id = game_state['current_room']
     room_data = ROOMS[current_room_id]
-    
+
     # 2. Проверяем, есть ли такое направление в словаре exits текущей комнаты
     if direction in room_data['exits']:
         # Находим название новой комнаты
         new_room_id = room_data['exits'][direction]
-        
+
+        # 2.1. Проверка доступа в treasure_room
+        if new_room_id == 'treasure_room' and 'rusty_key' not in game_state['player_inventory']:
+            print("\nДверь заперта. Нужен ключ, чтобы пройти дальше.")
+            return
+
+        # 2.2. Если переходим в treasure_room с ключом
+        if new_room_id == 'treasure_room' and 'rusty_key' in game_state['player_inventory']:
+            print("\nВы используете найденный ключ, чтобы открыть путь в комнату сокровищ.")
+
         # 3. Обновляем состояние игры
         game_state['current_room'] = new_room_id
         game_state['steps_taken'] += 1
-        
+
         print(f"\nВы идете на {direction}...")
 
         # 4. Сразу показываем описание новой комнаты (используем нашу функцию из utils)
         utils.describe_current_room(game_state)
+
+        # 5. Вызываем случайное событие после перемещения
+        utils.random_event(game_state)
     else:
         # Если направления нет в словаре
         print(f"\nНельзя пойти в этом направлении: {direction}.")
