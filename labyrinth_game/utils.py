@@ -4,6 +4,16 @@ import math
 import labyrinth_game.player_actions as actions
 from labyrinth_game.constants import COMMANDS, ROOMS
 
+# Константы для игровой механики
+DAMAGE_ROLL_MODULO = 10  # Модуль для расчета урона от ловушки
+CRITICAL_DAMAGE_THRESHOLD = 3  # Порог критического урона (смертельная ловушка)
+EVENT_PROBABILITY_MODULO = 10  # Модуль вероятности случайного события (1/10)
+EVENT_TYPE_COUNT = 3  # Количество типов случайных событий
+RANK_LEGEND_THRESHOLD = 20  # Порог для ранга "Легенда Лабиринта"
+RANK_MASTER_THRESHOLD = 40  # Порог для ранга "Мастер Лабиринта"
+RANK_ADVENTURER_THRESHOLD = 60  # Порог для ранга "Искатель Приключений"
+VICTORY_SEPARATOR_WIDTH = 40  # Ширина разделителя в сообщении о победе
+
 
 def pseudo_random(seed, modulo):
     """Генерирует псевдослучайное число в диапазоне [0, modulo)."""
@@ -32,9 +42,9 @@ def trigger_trap(game_state):
         print(f"В суматохе вы потеряли предмет: {lost_item}!")
     else:
         # Если инвентарь пуст, игрок получает урон
-        damage_roll = pseudo_random(game_state['steps_taken'], 10)
+        damage_roll = pseudo_random(game_state['steps_taken'], DAMAGE_ROLL_MODULO)
 
-        if damage_roll < 3:
+        if damage_roll < CRITICAL_DAMAGE_THRESHOLD:
             # Критический урон - поражение
             print("Ловушка оказалась смертельной...")
             print("\n=== GAME OVER ===")
@@ -47,11 +57,13 @@ def trigger_trap(game_state):
 def random_event(game_state):
     """Генерирует случайные события во время перемещения."""
     # Определяем, произойдет ли событие (вероятность 1/10)
-    event_chance = pseudo_random(game_state['steps_taken'], 10)
+    event_chance = pseudo_random(
+        game_state['steps_taken'], EVENT_PROBABILITY_MODULO
+    )
 
     if event_chance == 0:
         # Выбираем, какое событие произойдет
-        event_type = pseudo_random(game_state['steps_taken'] + 1, 3)
+        event_type = pseudo_random(game_state['steps_taken'] + 1, EVENT_TYPE_COUNT)
 
         current_room_id = game_state['current_room']
         room_data = ROOMS[current_room_id]
@@ -87,26 +99,26 @@ def show_help():
 
 def _show_victory_stats(game_state):
     """Показывает финальную статистику при победе."""
-    print("\n" + "="*40)
+    print("\n" + "=" * VICTORY_SEPARATOR_WIDTH)
     print("           🏆 ПОБЕДА! 🏆")
-    print("="*40)
+    print("=" * VICTORY_SEPARATOR_WIDTH)
     print(f"Шагов сделано: {game_state['steps_taken']}")
     print(f"Предметов собрано: {len(game_state['player_inventory'])}")
     print(f"Загадок решено: {game_state.get('puzzles_solved', 0)}")
 
     # Определяем ранг на основе количества шагов
     steps = game_state['steps_taken']
-    if steps < 20:
+    if steps < RANK_LEGEND_THRESHOLD:
         rank = "⭐⭐⭐ Легенда Лабиринта"
-    elif steps < 40:
+    elif steps < RANK_MASTER_THRESHOLD:
         rank = "⭐⭐ Мастер Лабиринта"
-    elif steps < 60:
+    elif steps < RANK_ADVENTURER_THRESHOLD:
         rank = "⭐ Искатель Приключений"
     else:
         rank = "Начинающий Исследователь"
 
     print(f"Ранг: {rank}")
-    print("="*40)
+    print("=" * VICTORY_SEPARATOR_WIDTH)
 
 def describe_current_room(game_state):
     """Выводит полную информацию о комнате, в которой находится игрок."""

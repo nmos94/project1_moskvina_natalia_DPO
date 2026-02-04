@@ -5,7 +5,7 @@ description = "Текстовая приключенческая игра 'Ла�
 authors = [
     {name = "nmos94", email = "natalya.moskvina74@gmail.com"}
 ]
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 dependencies = [
 ]
 
@@ -14,10 +14,8 @@ dependencies = [
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[dependency-groups]
-dev = [
-    "ruff (>=0.14.14,<0.15.0)"
-]
+[tool.poetry.group.dev.dependencies]
+ruff = ">=0.14.14,<0.15.0"
 
 [tool.poetry]
 packages = [
