@@ -1,9 +1,9 @@
 [project]
 name = "project1_moskvina_natalia_DPO"
 version = "0.1.0"
-description = ""
+description = "Текстовая приключенческая игра 'Лабиринт сокровищ' на Python"
 authors = [
-    {name = "nmos94",email = "natalya.moskvina74@gmail.com"}
+    {name = "nmos94", email = "natalya.moskvina74@gmail.com"}
 ]
 requires-python = ">=3.12"
 dependencies = [

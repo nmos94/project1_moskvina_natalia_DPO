@@ -7,7 +7,9 @@ game_state = {
     'player_inventory': [],
     'current_room': 'entrance',
     'game_over': False,
-    'steps_taken': 0
+    'steps_taken': 0,
+    'puzzles_solved': 0,
+    'bronze_box_opened': False
 }
 
 def process_command(game_state, command):
@@ -91,6 +93,7 @@ def process_command(game_state, command):
 def main():
     # 2. Приветствие
     print("Добро пожаловать в Лабиринт сокровищ!")
+    print("\n💡 Подсказка: введите 'help' для просмотра всех команд\n")
 
     # 3. Описание стартовой комнаты (вызываем функцию из utils)
     utils.describe_current_room(game_state)

@@ -1,3 +1,7 @@
+import labyrinth_game.utils as utils
+from labyrinth_game.constants import ROOMS
+
+
 def get_input(prompt="> "):
     """Безопасно считывает ввод пользователя."""
     try:
@@ -25,10 +29,6 @@ def show_inventory(game_state):
     print("------------------")
 
 
-import labyrinth_game.utils as utils
-from labyrinth_game.constants import ROOMS
-
-
 def move_player(game_state, direction):
     """Перемещает игрока в указанном направлении, если это возможно."""
 
@@ -42,13 +42,18 @@ def move_player(game_state, direction):
         new_room_id = room_data['exits'][direction]
 
         # 2.1. Проверка доступа в treasure_room
-        if new_room_id == 'treasure_room' and 'rusty_key' not in game_state['player_inventory']:
+        if (new_room_id == 'treasure_room' and
+                'rusty_key' not in game_state['player_inventory']):
             print("\nДверь заперта. Нужен ключ, чтобы пройти дальше.")
             return
 
         # 2.2. Если переходим в treasure_room с ключом
-        if new_room_id == 'treasure_room' and 'rusty_key' in game_state['player_inventory']:
-            print("\nВы используете найденный ключ, чтобы открыть путь в комнату сокровищ.")
+        if (new_room_id == 'treasure_room' and
+                'rusty_key' in game_state['player_inventory']):
+            print(
+                "\nВы используете найденный ключ, чтобы открыть путь "
+                "в комнату сокровищ."
+            )
 
         # 3. Обновляем состояние игры
         game_state['current_room'] = new_room_id
@@ -56,7 +61,8 @@ def move_player(game_state, direction):
 
         print(f"\nВы идете на {direction}...")
 
-        # 4. Сразу показываем описание новой комнаты (используем нашу функцию из utils)
+        # 4. Сразу показываем описание новой комнаты
+        # (используем нашу функцию из utils)
         utils.describe_current_room(game_state)
 
         # 5. Вызываем случайное событие после перемещения
@@ -104,16 +110,20 @@ def use_item(game_state, item_name):
             print("\nВы зажигаете факел. Вокруг стало намного светлее!")
 
         case "sword":
-            print("\nВы крепче сжимаете рукоять меча. Вы чувствуете уверенность и готовность к бою!")
+            print(
+                "\nВы крепче сжимаете рукоять меча. "
+                "Вы чувствуете уверенность и готовность к бою!"
+            )
 
         case "bronze_box":
-            print("\nВы открываете бронзовую шкатулку...")
-            # Проверяем, нет ли уже ключа в инвентаре
-            if 'rusty_key' not in game_state['player_inventory']:
-                game_state['player_inventory'].append('rusty_key')
-                print("Внутри вы находите ржавый ключ!")
+            # Проверяем, была ли шкатулка уже открыта
+            if game_state.get('bronze_box_opened', False):
+                print("\nШкатулка уже пуста, вы её уже открывали.")
             else:
-                print("Шкатулка пуста.")
+                print("\nВы открываете бронзовую шкатулку...")
+                game_state['player_inventory'].append('rusty_key')
+                game_state['bronze_box_opened'] = True
+                print("Внутри вы находите ржавый ключ!")
 
         case _:
             # Для всех остальных предметов

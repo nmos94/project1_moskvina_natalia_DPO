@@ -68,10 +68,12 @@ def random_event(game_state):
                 print("Вы хватаетесь за меч и отпугиваете неведомое существо!")
             else:
                 print("Вам становится не по себе...")
+                print("(Это было случайное событие, можно продолжать)")
 
         elif event_type == 2:
             # Сценарий 3: Ловушка в trap_room без факела
-            if current_room_id == 'trap_room' and 'torch' not in game_state['player_inventory']:
+            if (current_room_id == 'trap_room' and
+                    'torch' not in game_state['player_inventory']):
                 print("\n⚠️  Без света вы не заметили ловушку!")
                 trigger_trap(game_state)
 
@@ -79,8 +81,32 @@ def show_help():
     """Выводит список доступных команд."""
     print("\nДоступные команды:")
     for command, description in COMMANDS.items():
-        # Форматируем команду с выравниванием слева и дополнением пробелами до 16 символов
+        # Форматируем команду с выравниванием слева и дополнением
+        # пробелами до 16 символов
         print(f"  {command:<16} - {description}")
+
+def _show_victory_stats(game_state):
+    """Показывает финальную статистику при победе."""
+    print("\n" + "="*40)
+    print("           🏆 ПОБЕДА! 🏆")
+    print("="*40)
+    print(f"Шагов сделано: {game_state['steps_taken']}")
+    print(f"Предметов собрано: {len(game_state['player_inventory'])}")
+    print(f"Загадок решено: {game_state.get('puzzles_solved', 0)}")
+
+    # Определяем ранг на основе количества шагов
+    steps = game_state['steps_taken']
+    if steps < 20:
+        rank = "⭐⭐⭐ Легенда Лабиринта"
+    elif steps < 40:
+        rank = "⭐⭐ Мастер Лабиринта"
+    elif steps < 60:
+        rank = "⭐ Искатель Приключений"
+    else:
+        rank = "Начинающий Исследователь"
+
+    print(f"Ранг: {rank}")
+    print("="*40)
 
 def describe_current_room(game_state):
     """Выводит полную информацию о комнате, в которой находится игрок."""
@@ -127,8 +153,9 @@ def attempt_open_treasure(game_state):
         if 'treasure_chest' in room_data['items']:
             room_data['items'].remove('treasure_chest')
 
-        # Объявляем победу
-        print("\nВ сундуке сокровище! Вы победили!")
+        # Объявляем победу с финальной статистикой
+        print("\nВ сундуке сокровище!")
+        _show_victory_stats(game_state)
         game_state['game_over'] = True
         return
 
@@ -157,8 +184,14 @@ def attempt_open_treasure(game_state):
                 # Убираем загадку
                 room_data['puzzle'] = None
 
-                # Объявляем победу
-                print("\nВ сундуке сокровище! Вы победили!")
+                # Увеличиваем счетчик решенных загадок (за взлом кода)
+                game_state['puzzles_solved'] = (
+                    game_state.get('puzzles_solved', 0) + 1
+                )
+
+                # Объявляем победу с финальной статистикой
+                print("\nВ сундуке сокровище!")
+                _show_victory_stats(game_state)
                 game_state['game_over'] = True
             else:
                 # Код неверный
@@ -210,7 +243,10 @@ def solve_puzzle(game_state):
     # Создаем список всех правильных вариантов
     valid_answers = [correct_answer_lower]
     if correct_answer_lower in alternative_answers:
-        valid_answers.extend([alt.lower() for alt in alternative_answers[correct_answer_lower]])
+        valid_answers.extend([
+            alt.lower()
+            for alt in alternative_answers[correct_answer_lower]
+        ])
 
     if user_answer_lower in valid_answers:
         # Ответ верный
@@ -219,18 +255,32 @@ def solve_puzzle(game_state):
         # Убираем загадку из комнаты (чтобы нельзя было решить дважды)
         room_data['puzzle'] = None
 
+        # Увеличиваем счетчик решенных загадок
+        game_state['puzzles_solved'] = (
+            game_state.get('puzzles_solved', 0) + 1
+        )
+
         # Награда зависит от комнаты
         if current_room_id == 'hall':
-            print("Сундук на пьедестале открывается! Внутри лежит золотой медальон.")
+            print(
+                "Сундук на пьедестале открывается! "
+                "Внутри лежит золотой медальон."
+            )
             game_state['player_inventory'].append('golden_medallion')
+            print("→ Медальон добавлен в вашу сумку.")
         elif current_room_id == 'library':
-            print("Полка сдвигается, открывая тайник! Вы находите магический свиток.")
+            print(
+                "Полка сдвигается, открывая тайник! "
+                "Вы находите магический свиток."
+            )
             game_state['player_inventory'].append('magic_scroll')
+            print("→ Свиток добавлен в вашу сумку.")
         elif current_room_id == 'trap_room':
             print("Плиты перестали двигаться. Путь безопасен!")
         elif current_room_id == 'dungeon_corridor':
             print("Стена открывается, и вы находите серебряное кольцо!")
             game_state['player_inventory'].append('silver_ring')
+            print("→ Кольцо добавлено в вашу сумку.")
         else:
             print("Вы получаете награду за решение загадки!")
     else:
